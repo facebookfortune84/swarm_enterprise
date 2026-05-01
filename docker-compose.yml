@@ -1,0 +1,72 @@
+services:
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    restart: always
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    command: tunnel --no-autoupdate run --protocol http2
+    networks:
+      - swarm_network
+
+  backend:
+    build:
+      context: .
+      dockerfile: ./backend/Dockerfile
+    env_file: .env
+    restart: always
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./memory_data:/app/memory/chroma_db
+      - ./sops:/app/sops
+      - ./agents:/app/agents
+      - ./agents_core:/app/agents_core
+      - ./output:/app/output
+    networks:
+      - swarm_network
+
+  frontend:
+    build:
+      context: ./frontend
+    restart: always
+    networks:
+      - swarm_network
+
+  chromadb:
+    image: chromadb/chroma
+    volumes:
+      - ./memory_data:/chroma/chroma
+    restart: always
+    networks:
+      - swarm_network
+
+  monitor:
+    build:
+      context: .
+      dockerfile: ./backend/Dockerfile
+    command: python agents_core/monitor.py
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - .:/app
+    restart: always
+    networks:
+      - swarm_network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # VIEW YOUR BUILDS AT: http://corp.realms2riches.com:8080
+  output_viewer:
+    image: halverneus/static-file-server:latest
+    ports:
+      - "8080:8080"
+    restart: always
+    volumes:
+      - ./output:/web
+    environment:
+      - PORT=8080
+    networks:
+      - swarm_network
+
+networks:
+  swarm_network:
+    driver: bridge

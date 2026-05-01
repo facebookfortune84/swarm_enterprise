@@ -1,0 +1,20 @@
+# Secrets
+.env
+*.pem
+*.key
+
+# Data & Databases
+swarm_tickets.db
+memory_data/
+nginx_data/
+pg_data/
+
+# Swarm Output
+output/
+dist/
+
+# Python/System
+__pycache__/
+*.pyc
+.docker/
+node_modules/

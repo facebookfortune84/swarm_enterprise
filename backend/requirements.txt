@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+python-dotenv
+crewai
+litellm
+langchain-ollama
+chromadb
+stripe
+docker

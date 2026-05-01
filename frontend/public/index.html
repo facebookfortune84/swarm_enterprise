@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Swarm OS | Realms2Riches</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #020617; color: #38bdf8; font-family: 'Courier New', monospace; }
+        .glow { text-shadow: 0 0 10px #38bdf8; }
+        .stack-card { border: 1px solid #1e293b; cursor: pointer; transition: 0.3s; }
+        .stack-card.active { border-color: #38bdf8; background: #0c4a6e; color: white; }
+    </style>
+</head>
+<body class="p-10">
+    <header class="border-b border-sky-900 pb-5 flex justify-between items-center">
+        <h1 class="text-4xl font-black glow">SWARM_OS v1.0</h1>
+        <button onclick="downloadBuild()" class="bg-emerald-600 px-6 py-2 rounded font-bold hover:bg-emerald-500 transition-all">DOWNLOAD LATEST BUILD</button>
+    </header>
+
+    <main class="mt-10 grid grid-cols-1 lg:grid-cols-2 gap-10">
+        <section class="space-y-6">
+            <div>
+                <h2 class="text-xl font-bold mb-2">1. DEFINE APPLICATION LOGIC</h2>
+                <textarea id="prompt" class="w-full h-40 bg-slate-900 border border-slate-700 p-4 rounded" placeholder="Describe the application vibe..."></textarea>
+            </div>
+
+            <div>
+                <h2 class="text-xl font-bold mb-3">2. SELECT TECHNOLOGY STACK</h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="stack-card p-4 rounded active" onclick="setStack(this, 'Python FastAPI + React')">
+                        <h3 class="font-bold">Enterprise SaaS</h3>
+                        <p class="text-xs opacity-60">FastAPI, PostgreSQL, React</p>
+                    </div>
+                    <div class="stack-card p-4 rounded" onclick="setStack(this, 'Next.js + MongoDB')">
+                        <h3 class="font-bold">Startup Core</h3>
+                        <p class="text-xs opacity-60">Next.js, Tailwind, NoSQL</p>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="startSprint()" id="btn" class="w-full bg-sky-600 py-4 rounded font-black text-xl hover:bg-sky-500">EXECUTE PRODUCTION SPRINT</button>
+        </section>
+
+        <section class="bg-black border border-sky-900 p-6 rounded flex flex-col h-[600px]">
+            <h2 class="text-xs text-sky-800 uppercase font-black mb-4">Live Workforce Logs</h2>
+            <div id="logs" class="text-sm space-y-2 overflow-y-auto flex-grow text-sky-400">
+                <div>> Waiting for command...</div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        let currentStack = "Python FastAPI + React";
+        function setStack(el, val) {
+            document.querySelectorAll('.stack-card').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+            currentStack = val;
+        }
+
+        async function startSprint() {
+            const btn = document.getElementById('btn');
+            btn.innerText = "SPRINT IN PROGRESS..."; btn.disabled = true;
+            const log = document.getElementById('logs');
+            log.innerHTML += `<div class="text-yellow-500">> Initiating Swarm for ${currentStack}...</div>`;
+
+            const res = await fetch('https://corp.realms2riches.com/api/build', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ description: document.getElementById('prompt').value, stack: currentStack })
+            });
+            if(res.ok) log.innerHTML += `<div class="text-green-500">> Agents are writing to C:/SwarmEnterprise/output/src/</div>`;
+        }
+
+        async function downloadBuild() {
+            const res = await fetch('https://corp.realms2riches.com/api/replicate', {method: 'POST'});
+            const data = await res.json();
+            window.location.href = data.download_url;
+        }
+    </script>
+</body>
+</html>
