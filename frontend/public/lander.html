@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Swarm OS | Autonomous Digital Factory</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .hero-glow { background: radial-gradient(circle at center, rgba(6, 182, 212, 0.15) 0%, transparent 70%); }
+        .border-glow:hover { box-shadow: 0 0 15px rgba(6, 182, 212, 0.3); border-color: #06b6d4; }
+    </style>
+</head>
+<body class="bg-[#020617] text-slate-300 font-sans selection:bg-cyan-500/30">
+    <div class="fixed inset-0 hero-glow -z-10"></div>
+
+    <nav class="max-w-7xl mx-auto px-8 py-6 flex justify-between items-center border-b border-slate-800/50">
+        <div class="flex items-center gap-2">
+            <div class="w-8 h-8 bg-cyan-500 rounded-lg flex items-center justify-center">
+                <span class="text-white font-black text-xl">S</span>
+            </div>
+            <span class="text-xl font-bold tracking-tighter text-white uppercase">Swarm OS</span>
+        </div>
+        <div class="flex items-center gap-8 text-sm font-medium">
+            <a href="#features" class="hover:text-cyan-400 transition-colors">Architecture</a>
+            <a href="/privacy-policy.html" class="hover:text-cyan-400 transition-colors">Privacy</a>
+            <a href="https://corp.realms2riches.com" class="bg-cyan-600 text-white px-5 py-2 rounded-full hover:bg-cyan-500 transition-all font-bold">DASHBOARD</a>
+        </div>
+    </nav>
+
+    <header class="max-w-5xl mx-auto px-8 pt-32 pb-20 text-center">
+        <h1 class="text-6xl md:text-8xl font-black text-white leading-none mb-6 tracking-tighter uppercase">
+            The Last Workforce <br/> <span class="text-cyan-500">You'll Ever Hire.</span>
+        </h1>
+        <p class="text-xl text-slate-400 max-w-2xl mx-auto mb-10">
+            Swarm OS is a programmable company in a box. An elite, 12-manager autonomous engineering firm living on your hardware. Zero API costs. Total Sovereignty.
+        </p>
+        <div class="flex justify-center gap-4">
+            <button onclick="window.location.href='https://corp.realms2riches.com/api/checkout'" class="bg-white text-black px-8 py-4 rounded-xl font-black text-lg hover:bg-cyan-400 transition-all uppercase">Buy Company Box ($499)</button>
+            <a href="#demo" class="border border-slate-700 px-8 py-4 rounded-xl font-bold text-lg hover:bg-slate-800 transition-all uppercase">View Masterplan</a>
+        </div>
+    </header>
+
+    <section id="features" class="max-w-7xl mx-auto px-8 py-20 grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="p-8 rounded-3xl bg-slate-900/50 border border-slate-800 border-glow transition-all">
+            <h3 class="text-white font-bold text-xl mb-4 uppercase tracking-tighter">Fractal Autonomy</h3>
+            <p class="text-sm leading-relaxed">A 12-seat Board of Directors decomposes your vision into 36 technical directives, executed by 30 specialized supervisors.</p>
+        </div>
+        <div class="p-8 rounded-3xl bg-slate-900/50 border border-slate-800 border-glow transition-all">
+            <h3 class="text-white font-bold text-xl mb-4 uppercase tracking-tighter">Zero-Cost Scaling</h3>
+            <p class="text-sm leading-relaxed">Runs on local Llama 3.2 models using your own RAM. No more monthly bills to OpenAI or Anthropic.</p>
+        </div>
+        <div class="p-8 rounded-3xl bg-slate-900/50 border border-slate-800 border-glow transition-all">
+            <h3 class="text-white font-bold text-xl mb-4 uppercase tracking-tighter">Self-Replicating</h3>
+            <p class="text-sm leading-relaxed">The factory can clone its own infrastructure. Package and sell your custom builds as standalone businesses instantly.</p>
+        </div>
+    </section>
+
+    <footer class="max-w-7xl mx-auto px-8 py-20 border-t border-slate-800/50 flex flex-col md:flex-row justify-between gap-10">
+        <div class="max-w-xs">
+            <span class="text-white font-bold uppercase tracking-widest">Realms2Riches LLC</span>
+            <p class="text-xs text-slate-500 mt-4">Built in West Virginia. Sovereign software for the autonomous age.</p>
+        </div>
+        <div class="grid grid-cols-2 gap-20">
+            <ul class="space-y-2 text-xs uppercase font-black">
+                <li class="text-slate-500 mb-4">Legal</li>
+                <li><a href="/terms-of-service.html">Terms</a></li>
+                <li><a href="/privacy-policy.html">Privacy</a></li>
+            </ul>
+        </div>
+    </footer>
+</body>
+</html>

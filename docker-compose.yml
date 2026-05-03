@@ -1,49 +1,67 @@
 services:
+  # 1. THE PERIMETER: Cloudflare Tunnel
+  # Securely routes realms2riches.com and corp.realms2riches.com to our containers.
+  # No port forwarding required; uses the dynamic bridge to your Laptop Brain.
   tunnel:
     image: cloudflare/cloudflared:latest
+    container_name: swarmenterprise-tunnel-1
     restart: always
     environment:
-      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+      - TUNNEL_TOKEN=\${CLOUDFLARE_TUNNEL_TOKEN}
+    # Using http2 for maximum stability on virtualized network adapters
     command: tunnel --no-autoupdate run --protocol http2
     networks:
       - swarm_network
 
+  # 2. THE BRAIN: FastAPI Backend
+  # Houses the 10 Managers, 30 Supervisors, and the Linear Ticketing Engine.
   backend:
     build:
       context: .
       dockerfile: ./backend/Dockerfile
+    container_name: swarmenterprise-backend-1
     env_file: .env
     restart: always
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
-      - ./memory_data:/app/memory/chroma_db
-      - ./sops:/app/sops
-      - ./agents:/app/agents
-      - ./agents_core:/app/agents_core
+      - .:/app
+      - ./memory_data:/app/memory_data
       - ./output:/app/output
+    depends_on:
+      - chromadb
     networks:
       - swarm_network
 
+  # 3. THE COMMAND CENTER: React Frontend
+  # The dark-mode dashboard used to initiate and monitor Fractal Sprints.
   frontend:
     build:
       context: ./frontend
+      dockerfile: Dockerfile
+    container_name: swarmenterprise-frontend-1
     restart: always
     networks:
       - swarm_network
 
+  # 4. THE NERVOUS SYSTEM: ChromaDB
+  # The local Vector Store for RAG memory and tribal knowledge persistence (SOP-06).
   chromadb:
     image: chromadb/chroma
+    container_name: swarmenterprise-chromadb-1
     volumes:
       - ./memory_data:/chroma/chroma
     restart: always
     networks:
       - swarm_network
 
+  # 5. THE IMMUNE SYSTEM: SRE Monitor
+  # Physically watches the Docker socket to auto-heal failed agents (SOP-08).
   monitor:
     build:
       context: .
       dockerfile: ./backend/Dockerfile
+    container_name: swarmenterprise-monitor-1
     command: python agents_core/monitor.py
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -54,9 +72,11 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
-  # VIEW YOUR BUILDS AT: http://corp.realms2riches.com:8080
+  # 6. THE DELIVERY WINDOW: Output Viewer
+  # Allows the user/client to view and download their new app at port 8080.
   output_viewer:
     image: halverneus/static-file-server:latest
+    container_name: swarmenterprise-output-viewer-1
     ports:
       - "8080:8080"
     restart: always
@@ -69,4 +89,5 @@ services:
 
 networks:
   swarm_network:
+    name: swarm_network
     driver: bridge
