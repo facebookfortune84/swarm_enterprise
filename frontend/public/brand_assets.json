@@ -1,88 +1,98 @@
 {
-    "brand": {
-      "company_name": "Realms2Riches",
-      "product_name": "Swarm Enterprise OS",
-      "version": "1.0.0",
-      "tagline": "Autonomous Digital Factory",
-      "support_domain": "corp.realms2riches.com"
+  "brand": {
+    "company_name": "Realms2Riches",
+    "product_name": "Swarm Enterprise OS",
+    "version": "1.0.0",
+    "tagline": "Autonomous Digital Factory",
+    "support_domain": "corp.realms2riches.com"
+  },
+  "theme": {
+    "mode": "dark",
+    "colors": {
+      "background": "#020617",
+      "surface": "#0f172a",
+      "border": "#1e293b",
+      "primary": "#06b6d4",
+      "secondary": "#38bdf8",
+      "accent": "#10b981",
+      "error": "#ef4444",
+      "warning": "#f59e0b"
     },
-    "theme": {
-      "mode": "dark",
-      "colors": {
-        "background": "#020617",
-        "surface": "#0f172a",
-        "border": "#1e293b",
-        "primary": "#06b6d4",
-        "secondary": "#38bdf8",
-        "accent": "#10b981",
-        "error": "#ef4444",
-        "warning": "#f59e0b"
-      },
-      "typography": {
-        "font_family": "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-        "glow_effect": "0 0 15px rgba(6, 182, 212, 0.4)"
-      }
+    "typography": {
+      "font_family": "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+      "glow_effect": "0 0 15px rgba(6, 182, 212, 0.4)"
+    }
+  },
+  "department_map": {
+    "CTO": {
+      "icon": "Cpu",
+      "color": "cyan",
+      "label": "Technical Strategy"
     },
-    "department_map": {
-      "CTO": {
-        "icon": "Cpu",
-        "color": "cyan",
-        "label": "Technical Strategy"
-      },
-      "CPO": {
-        "icon": "Layers",
-        "color": "blue",
-        "label": "Product Vision"
-      },
-      "ARCHITECT": {
-        "icon": "Binary",
-        "color": "indigo",
-        "label": "System Mapping"
-      },
-      "SECURITY": {
-        "icon": "ShieldCheck",
-        "color": "emerald",
-        "label": "Adversarial Audit"
-      },
-      "DEVOPS": {
-        "icon": "Terminal",
-        "color": "sky",
-        "label": "Infrastructure"
-      },
-      "QA": {
-        "icon": "Activity",
-        "color": "amber",
-        "label": "Quality Assurance"
-      },
-      "UI": {
-        "icon": "LayoutGrid",
-        "color": "violet",
-        "label": "UX Implementation"
-      },
-      "REPLICATOR": {
-        "icon": "Download",
-        "color": "teal",
-        "label": "Box Replication"
-      },
-      "DOCS": {
-        "icon": "FileText",
-        "color": "slate",
-        "label": "Knowledge Base"
-      },
-      "COMPLIANCE": {
-        "icon": "Gavel",
-        "color": "rose",
-        "label": "Legal Logic"
-      }
+    "CPO": {
+      "icon": "Layers",
+      "color": "blue",
+      "label": "Product Vision"
     },
-    "sale_metadata": {
-      "license": "MIT",
-      "delivery_type": "Programmable Company ZIP",
-      "installer_script": "START_COMPANY.bat",
-      "minimum_specs": {
-        "vram": "4GB",
-        "system_ram": "16GB",
-        "engine": "Docker Engine (Linux Mode)"
-      }
+    "ARCHITECT": {
+      "icon": "Binary",
+      "color": "indigo",
+      "label": "System Mapping"
+    },
+    "SECURITY": {
+      "icon": "ShieldCheck",
+      "color": "emerald",
+      "label": "Adversarial Audit"
+    },
+    "DEVOPS": {
+      "icon": "Terminal",
+      "color": "sky",
+      "label": "Infrastructure"
+    },
+    "QA": {
+      "icon": "Activity",
+      "color": "amber",
+      "label": "Quality Assurance"
+    },
+    "UI": {
+      "icon": "LayoutGrid",
+      "color": "violet",
+      "label": "UX Implementation"
+    },
+    "MARKETING": {
+      "icon": "Megaphone",
+      "color": "orange",
+      "label": "Growth Strategy"
+    },
+    "OUTREACH": {
+      "icon": "Mail",
+      "color": "yellow",
+      "label": "Lead Generation"
+    },
+    "REPLICATOR": {
+      "icon": "Download",
+      "color": "teal",
+      "label": "Box Replication"
+    },
+    "DOCS": {
+      "icon": "FileText",
+      "color": "slate",
+      "label": "Knowledge Base"
+    },
+    "COMPLIANCE": {
+      "icon": "Gavel",
+      "color": "rose",
+      "label": "Legal Logic"
+    }
+  },
+  "sale_metadata": {
+    "license": "MIT",
+    "delivery_type": "Programmable Company ZIP",
+    "installer_script": "START_COMPANY.bat",
+    "minimum_specs": {
+      "vram": "4GB",
+      "system_ram": "16GB",
+      "engine": "Docker Engine (Linux Mode)"
     }
   }
+}

@@ -7,10 +7,7 @@ from crewai.tools import tool
 class EmailTools:
     @tool("send_outreach_email")
     def send_email(target_email: str, subject: str, body: str) -> str:
-        """
-        Physically sends an email using the company SMTP server.
-        Used by the Outreach Supervisor to contact leads or send 'The Box' to buyers.
-        """
+        """Physically sends an email via SMTP for sales and delivery."""
         smtp_server = os.getenv("SMTP_SERVER")
         smtp_port = int(os.getenv("SMTP_PORT", 587))
         smtp_user = os.getenv("SMTP_USER")
@@ -30,6 +27,10 @@ class EmailTools:
                 server.starttls()
                 server.login(smtp_user, smtp_pass)
                 server.send_message(msg)
-            return f"SUCCESS: Outreach email sent to {target_email}"
+            return f"SUCCESS: Email delivered to {target_email}"
         except Exception as e:
-            return f"ERROR: Failed to send email. {str(e)}"
+            return f"ERROR: Delivery failed. {str(e)}"
+
+# Export for the agents
+comm_tools = EmailTools()
+send_outreach_email = comm_tools.send_email

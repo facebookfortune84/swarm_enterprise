@@ -3,7 +3,7 @@ import uuid
 import logging
 from datetime import datetime
 from typing import List, Dict, Optional, Any
-from sqlalchemy import create_engine, select, update, and_
+from sqlalchemy import create_engine, update, and_
 from sqlalchemy.orm import sessionmaker, scoped_session
 from .models import Base, Project, Ticket, AuditLog, TicketStatus, RiskLevel
 
@@ -48,21 +48,11 @@ class LinearEngine:
             return project_id
         except Exception as e:
             session.rollback()
-            logger.error(f"PROJECT_ERROR: Failed to create project. {e}")
+            logger.error(f"PROJECT_ERROR: {e}")
             raise e
 
     # --- 2. FRACTAL TICKET LOGIC ---
-    def create_ticket(self, 
-                      project_id: str, 
-                      title: str, 
-                      instruction: str, 
-                      creator_role: str, 
-                      assigned_role: str, 
-                      parent_id: Optional[str] = None) -> str:
-        """
-        Creates a ticket in the fractal hierarchy. 
-        Enforces SOP-02 (Atomic Tasking) and SOP-05 (Modular Mapping).
-        """
+    def create_ticket(self, project_id, title, instruction, creator_role, assigned_role, parent_id=None):
         session = self.Session()
         try:
             ticket_id = f"TICK-{uuid.uuid4().hex[:8].upper()}"
@@ -81,11 +71,9 @@ class LinearEngine:
             return ticket_id
         except Exception as e:
             session.rollback()
-            logger.error(f"TICKET_ERROR: Failed to create ticket. {e}")
             return None
 
     def claim_ticket(self, ticket_id: str, agent_role: str):
-        """Moves ticket from OPEN to CLAIMED per SOP-02."""
         session = self.Session()
         session.query(Ticket).filter(Ticket.id == ticket_id).update({
             "status": TicketStatus.CLAIMED,
@@ -95,10 +83,6 @@ class LinearEngine:
         session.commit()
 
     def submit_work(self, ticket_id: str, file_path: str, content: str):
-        """
-        Records work from the Lead Developer. 
-        Generates the SHA-256 hash for SOP-04 Adversarial Verification.
-        """
         session = self.Session()
         file_hash = hashlib.sha256(content.encode()).hexdigest()
         session.query(Ticket).filter(Ticket.id == ticket_id).update({
@@ -112,16 +96,9 @@ class LinearEngine:
 
     # --- 3. ADVERSARIAL AUDIT & SECURITY ---
     def log_audit(self, ticket_id: str, auditor_role: str, risk: str, action: str, findings: str):
-        """
-        Records the outcome of a Security Audit per SOP-04.
-        Handles REJECTED loops and VERIFIED transitions.
-        """
         session = self.Session()
         try:
-            # Map string risk to Enum
             risk_enum = RiskLevel[risk.upper()]
-            
-            # 1. Create the Audit Log
             new_audit = AuditLog(
                 ticket_id=ticket_id,
                 auditor_role=auditor_role,
@@ -130,45 +107,20 @@ class LinearEngine:
             )
             session.add(new_audit)
             
-            # 2. Update Ticket Status
-            if action == "REJECTED":
-                status = TicketStatus.REJECTED
-            elif action == "APPROVED":
-                status = TicketStatus.VERIFIED
-            else:
-                status = TicketStatus.IN_PROGRESS
-
+            # Update Ticket based on Audit
+            status = TicketStatus.VERIFIED if action == "APPROVED" else TicketStatus.REJECTED
             session.query(Ticket).filter(Ticket.id == ticket_id).update({
                 "status": status,
                 "risk_assessment": risk_enum,
                 "updated_at": datetime.utcnow()
             })
-            
             session.commit()
-            logger.info(f"AUDIT_COMPLETED: Ticket {ticket_id} marked as {action}")
         except Exception as e:
             session.rollback()
-            logger.error(f"AUDIT_ERROR: Failed to log audit for {ticket_id}. {e}")
+            logger.error(f"AUDIT_ERROR: {e}")
 
-    # --- 4. QUEUE & MONITORING QUERIES ---
-    def get_pending_work(self, role: str) -> List[Ticket]:
-        """Returns all available tickets for a specific role/department."""
-        session = self.Session()
-        return session.query(Ticket).filter(
-            and_(
-                Ticket.assigned_role == role,
-                Ticket.status.in_([TicketStatus.OPEN, TicketStatus.REJECTED])
-            )
-        ).all()
-
-    def get_integrity_manifest(self) -> List[Dict[str, str]]:
-        """Used by SRE Agent (SOP-08) to perform SHA-256 system scans."""
-        session = self.Session()
-        tickets = session.query(Ticket).filter(Ticket.sha256_hash != None).all()
-        return [{"path": t.file_path, "hash": t.sha256_hash} for t in tickets]
-
+    # --- 4. ANALYTICS ---
     def get_project_stats(self, project_id: str) -> Dict[str, Any]:
-        """Aggregates ticket data for the React Dashboard."""
         session = self.Session()
         tickets = session.query(Ticket).filter(Ticket.project_id == project_id).all()
         return {
@@ -179,8 +131,6 @@ class LinearEngine:
         }
 
     def close(self):
-        """Safe shutdown of the engine handles."""
         self.Session.remove()
 
-# Global Singleton Instance
 swarm_db = LinearEngine()

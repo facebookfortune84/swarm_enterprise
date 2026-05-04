@@ -12,90 +12,82 @@ logger = logging.getLogger("SwarmOrchestrator")
 class SwarmOrchestrator:
     """
     The Central Control Loop for Swarm Enterprise.
-    Monitors the Linear Engine (SQLite) and dispatches agents based 
-    on ticket priority and hierarchical level.
-    Follows SOP-08 (Site Reliability & Self-Sustenance).
+    Monitors the Linear Engine and dispatches agents in a fractal hierarchy.
+    Enforces SOP-02.6 (RAM Protection) and SOP-08 (Self-Healing).
     """
 
     def __init__(self):
         self.is_running = False
-        self.polling_interval = 10 # Seconds between database scans
-        self.max_concurrent_tasks = 3 # SOP-02.6: Protect Laptop RAM
+        self.polling_interval = 10 
+        # Semaphore: Protects the 30GB Laptop RAM from concurrent 70B model calls
+        self.execution_semaphore = threading.Semaphore(3)
 
     def start_production_loop(self) -> NoReturn:
-        """
-        Main entry point for the background daemon.
-        This loop runs forever, driving the fractal swarm.
-        """
+        """Daemon entry point. Drives the factory from Strategy to Action."""
         self.is_running = True
-        logger.info("ORCHESTRATOR: Production Loop Active. Monitoring Linear Engine...")
+        logger.info("ORCHESTRATOR: Production Loop Active. Monitoring for Tickets...")
 
         while self.is_running:
             try:
-                self._process_open_tickets()
+                self._dispatch_hierarchy()
                 time.sleep(self.polling_interval)
             except Exception as e:
-                logger.error(f"ORCHESTRATOR_CRITICAL: Loop encountered error: {e}")
-                time.sleep(30) # Cool down before self-healing
+                logger.error(f"ORCHESTRATOR_CRITICAL: {e}")
+                time.sleep(20) # Auto-recovery cooldown
 
-    def _process_open_tickets(self):
-        """
-        Queries the DB for tickets that need agent intervention.
-        Routes them to Level 1 (Board) or Level 2 (Supervisors).
-        """
+    def _dispatch_hierarchy(self):
+        """Routes tickets based on their level in the Fractal Tree."""
         session = swarm_db.Session()
         
-        # 1. Check for Level 1 (Board) Strategic Planning Needs
-        # These are tickets created by the API 'build' endpoint
+        # --- LEVEL 1: THE BOARD (Strategic Directives) ---
         root_tickets = session.query(Ticket).filter(
             Ticket.creator_role == "USER",
             Ticket.status == TicketStatus.OPEN
         ).all()
 
         for rt in root_tickets:
-            logger.info(f"ORCHESTRATOR: Root Ticket detected: {rt.id}. Convening Board...")
-            # We run the board meeting in a separate thread to keep the loop moving
-            threading.Thread(
-                target=self._run_board_meeting, 
-                args=(rt.project_id, rt.title, rt.instruction)
-            ).start()
-            # Mark as claimed immediately so it doesn't double-trigger
+            logger.info(f"ORCHESTRATOR: Root Directive {rt.id} found. Convening Board...")
+            threading.Thread(target=self._run_board_meeting, args=(rt,)).start()
             swarm_db.claim_ticket(rt.id, "BOARD_OF_DIRECTORS")
 
-        # 2. Check for Level 2 (Supervisor) Execution Needs
-        # These are tickets created by the Board for specific departments
-        dept_tickets = session.query(Ticket).filter(
+        # --- LEVEL 2: THE SUPERVISORS (Departmental Execution) ---
+        open_directives = session.query(Ticket).filter(
             Ticket.assigned_role.like("%Supervisor"),
             Ticket.status == TicketStatus.OPEN
-        ).limit(self.max_concurrent_tasks).all()
+        ).all()
 
-        for dt in dept_tickets:
-            logger.info(f"ORCHESTRATOR: Dispatching {dt.assigned_role} for Ticket {dt.id}")
-            # Sequential execution per Supervisor to prevent local LLM choking
-            threading.Thread(
-                target=supervisor_orchestrator.process_ticket,
-                args=(dt.id,)
-            ).start()
+        for ticket in open_directives:
+            if self.execution_semaphore.acquire(blocking=False):
+                logger.info(f"ORCHESTRATOR: Dispatching {ticket.assigned_role} for {ticket.id}")
+                threading.Thread(target=self._managed_supervisor_run, args=(ticket.id,)).start()
+            else:
+                logger.debug("ORCHESTRATOR_WAIT: Concurrency limit reached.")
 
         session.close()
 
-    def _run_board_meeting(self, project_id: str, name: str, description: str):
-        """Wrapper to trigger the Level 1 strategic meeting."""
+    def _run_board_meeting(self, ticket: Ticket):
+        """Triggers the 12-Manager strategic session via Groq 70B."""
         try:
-            # strategic_board was imported from File #7
             strategic_board.convene_board(
-                project_id=project_id,
-                name=name,
-                description=description,
-                stack="Standardized Fractal Stack" # Can be dynamic
+                project_id=ticket.project_id,
+                name=ticket.title,
+                description=ticket.instruction,
+                stack="Enterprise Fractal Stack"
             )
+            swarm_db.update_ticket(ticket.id, status=TicketStatus.COMPLETED)
         except Exception as e:
-            logger.error(f"ORCHESTRATOR_ERROR: Board meeting failed for {project_id}: {e}")
+            logger.error(f"BOARD_FAIL: {e}")
+            swarm_db.update_ticket(ticket.id, status=TicketStatus.REJECTED)
+
+    def _managed_supervisor_run(self, ticket_id: str):
+        """Executes a supervisor task within the RAM-protection semaphore."""
+        try:
+            supervisor_orchestrator.process_ticket(ticket_id)
+        finally:
+            self.execution_semaphore.release()
 
     def stop(self):
-        """Graceful shutdown for system maintenance."""
         self.is_running = False
-        logger.info("ORCHESTRATOR: Shutting down production loop...")
+        logger.info("ORCHESTRATOR: Shutting down.")
 
-# Singleton instance to be used by the FastAPI lifecycle
 main_orchestrator = SwarmOrchestrator()

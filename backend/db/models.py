@@ -47,8 +47,8 @@ class Ticket(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     project = relationship("Project", back_populates="tickets")
 
-class SystemAudit(Base):
-    __tablename__ = "system_audits"
+class AuditLog(Base):
+    __tablename__ = "audit_logs"
     id = Column(Integer, primary_key=True)
     ticket_id = Column(String, ForeignKey("tickets.id"))
     auditor_role = Column(String)
