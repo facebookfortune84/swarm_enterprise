@@ -31,3 +31,5 @@ redis>=5.0.0
 # Sovereign Tooling & Diagnostics
 docker>=7.0.0
 requestsemail-validator>=2.0.0
+email-validator>=2.0.0
+email-validator>=2.0.0
