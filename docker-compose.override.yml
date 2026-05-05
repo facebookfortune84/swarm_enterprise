@@ -1,0 +1,3 @@
+services:
+  backend:
+    command: bash -c "pip install email-validator pydantic[email] python-multipart passlib[bcrypt] PyJWT && uvicorn backend.main:app --host 0.0.0.0 --port 8000 --workers 4"
