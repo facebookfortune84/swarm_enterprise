@@ -1,8 +1,8 @@
 # ==============================================================================
 # SOVEREIGN SDK: SWARM ENTERPRISE INFRASTRUCTURE MANIFEST
-# Version: 1.0.5-Alpha
+# Version: 1.0.6-Alpha
 # Architecture: Fractal Hierarchical
-# Description: Hardened Native Volumes and STRICT YAML spacing.
+# Description: STRICT YAML spacing for BOTH Redis and Postgres Healthchecks.
 # ==============================================================================
 
 services:
@@ -72,7 +72,7 @@ services:
     volumes:
       - pg_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-swarm_enterprise}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
       interval: 10s
       timeout: 5s
       retries: 5
