@@ -1,3 +1,9 @@
+# ==============================================================================
+# SOVEREIGN SDK: SWARM ENTERPRISE INFRASTRUCTURE MANIFEST
+# Version: 1.0.3-Alpha
+# Architecture: Fractal Hierarchical
+# ==============================================================================
+
 services:
   # 1. THE PERIMETER: Cloudflare Tunnel
   # Routes realms2riches.com and corp.realms2riches.com to our containers.
@@ -6,7 +12,7 @@ services:
     container_name: swarmenterprise-tunnel-1
     restart: always
     environment:
-      - TUNNEL_TOKEN=\${CLOUDFLARE_TUNNEL_TOKEN}
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
     command: tunnel --no-autoupdate run --protocol http2
     networks:
       - swarm_network
@@ -27,9 +33,12 @@ services:
       - ./memory_data:/app/memory_data
       - ./output:/app/output
     depends_on:
-      - chromadb
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      chromadb:
+        condition: service_started
     networks:
       - swarm_network
 
@@ -62,11 +71,16 @@ services:
     container_name: swarmenterprise-db-1
     restart: always
     environment:
-      - POSTGRES_USER=\${POSTGRES_USER:-postgres}
-      - POSTGRES_PASSWORD=\${POSTGRES_PASSWORD}
-      - POSTGRES_DB=\${POSTGRES_DB:-swarm_enterprise}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB:-swarm_enterprise}
     volumes:
       - ./pg_data:/var/lib/postgresql/data
+    healthcheck: 
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-swarm_enterprise}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - swarm_network
 
@@ -76,6 +90,11 @@ services:
     image: redis:alpine
     container_name: swarmenterprise-redis-1
     restart: always
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - swarm_network
 
@@ -86,7 +105,7 @@ services:
       context: .
       dockerfile: ./backend/Dockerfile
     container_name: swarmenterprise-monitor-1
-    command: python agents_core/monitor.py
+    command: python backend/core/orchestrator.py
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - .:/app

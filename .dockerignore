@@ -1,0 +1,40 @@
+# ==============================================================================
+# SOVEREIGN SDK: DOCKER IGNORE MANIFEST
+# Description: Prevents build-context overload across the WSL2 9P Bridge.
+# ==============================================================================
+
+# 1. Version Control
+.git
+.gitignore
+
+# 2. Virtual Environments & Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# 3. Environment Variables (Security)
+.env
+.env.local
+.env.production
+
+# 4. Swarm OS Databases & State Data
+# CRITICAL: Do not send databases to the build daemon.
+memory_data/
+pg_data/
+swarm_tickets.db
+swarm_system.log
+
+# 5. Frontend Node Assets
+frontend/node_modules/
+frontend/build/
+frontend/.npm/
+
+# 6. Output Volumes
+output/

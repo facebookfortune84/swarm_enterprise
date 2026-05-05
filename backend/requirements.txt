@@ -1,11 +1,33 @@
-fastapi
-uvicorn[standard]
-python-dotenv
-crewai==0.30.11
-litellm
-sqlalchemy>=2.0.27
+# ==============================================================================
+# SOVEREIGN SDK: BACKEND DEPENDENCY MANIFEST
+# Version: 1.0.1-Alpha
+# ==============================================================================
+
+# Core API & Runtime
+fastapi>=0.100.0
+uvicorn[standard]>=0.23.0
 pydantic>=2.4.1,<2.7.0
-stripe
-docker
+python-dotenv
+
+# Authentication & Commercial Bridge
 python-jose[cryptography]
 passlib[bcrypt]
+stripe
+
+# Swarm Orchestration & Intelligence (Brain Bridge)
+crewai==0.30.11
+litellm
+groq
+
+# Data Vault & ORM (PostgreSQL)
+sqlalchemy>=2.0.27
+psycopg2-binary>=2.9.9
+alembic
+
+# Nervous System & Message Bus
+chromadb>=0.4.0
+redis>=5.0.0
+
+# Sovereign Tooling & Diagnostics
+docker>=7.0.0
+requests
