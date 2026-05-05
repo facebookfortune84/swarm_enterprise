@@ -1,7 +1,7 @@
 """
 # ==============================================================================
 # SOVEREIGN SDK: FILE SYSTEM TOOLS
-# Version: 1.0.2-Alpha
+# Version: 1.0.3-Alpha
 # Description: Strict path-jailed file operations for physical workers.
 # ==============================================================================
 """
@@ -9,14 +9,18 @@ import os
 import hashlib
 import uuid
 from pathlib import Path
-from crewai.tools import tool
+from langchain.tools import tool
 
 # Strict SRE Path Jailing
 BASE_OUTPUT_DIR = Path("/app/output/src").resolve()
 
 def _get_safe_path(requested_path: str) -> Path:
     """Internal SRE routing to prevent path traversal attacks."""
-    target = (BASE_OUTPUT_DIR / requested_path).resolve()
+    if requested_path in ("", ".", "./"):
+        target = BASE_OUTPUT_DIR
+    else:
+        target = (BASE_OUTPUT_DIR / requested_path).resolve()
+        
     if not str(target).startswith(str(BASE_OUTPUT_DIR)):
         raise PermissionError(f"SECURITY_VIOLATION: Path {requested_path} is strictly jailed.")
     return target
@@ -37,7 +41,6 @@ def write_enterprise_file(path: str, content: str) -> str:
             f"# =================================================================\n\n"
         )
         
-        # Syntax-aware comment injection
         if path.endswith(('.js', '.css', '.ts')):
             header = header.replace('#', '//')
         elif path.endswith(('.html', '.xml')):
@@ -75,3 +78,24 @@ def calculate_integrity_hash(path: str) -> str:
             return hashlib.sha256(f.read()).hexdigest()
     except Exception as e:
         return f"ERROR: Hash failed. {str(e)}"
+
+@tool("map_project_structure")
+def map_project_structure(path: str = ".") -> str:
+    """Maps the physical directory structure of the output jail."""
+    try:
+        target = _get_safe_path(path)
+        if not target.exists():
+            return f"ERROR: Path {path} does not exist."
+        
+        result =[]
+        for root, dirs, files in os.walk(target):
+            level = str(root).replace(str(target), '').count(os.sep)
+            indent = ' ' * 4 * level
+            result.append(f"{indent}{os.path.basename(root)}/")
+            subindent = ' ' * 4 * (level + 1)
+            for f in files:
+                result.append(f"{subindent}{f}")
+        
+        return "\n".join(result) if result else "Directory is currently empty."
+    except Exception as e:
+        return f"ERROR: Mapping failed. {str(e)}"
