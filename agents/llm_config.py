@@ -2,15 +2,14 @@ import os
 import logging
 from dotenv import load_dotenv
 
-# 1. VERSION-AGNOSTIC BRAIN CONNECTOR
-# This specifically solves the 'ImportError: cannot import name LLM' 
-# by dynamically checking the library entry points.
+# Bulletproof multi-version import for LangChain
 try:
-    from crewai import LLM
-    _USE_NATIVE = True
+    from langchain_openai import ChatOpenAI
 except ImportError:
-    # Fallback if the specific version of CrewAI expects a different import path
-    _USE_NATIVE = False
+    try:
+        from langchain_community.chat_models import ChatOpenAI
+    except ImportError:
+        from langchain.chat_models import ChatOpenAI
 
 load_dotenv(dotenv_path="../.env")
 logger = logging.getLogger("SwarmBrain")
@@ -18,20 +17,15 @@ logger = logging.getLogger("SwarmBrain")
 class SwarmBrain:
     """
     The Intelligence Controller for Swarm Enterprise.
-    Enforces the 'Sovereignty Protocol' by ensuring all Action tasks
+    Enforces the Sovereignty Protocol by ensuring all Action tasks
     stay local while Strategy tasks use High-Speed Groq.
     """
 
     @staticmethod
     def initialize_isolation():
-        """SOP-07 Enforcement: Nukes telemetry and redirects OpenAI calls."""
+        """SOP-07 Enforcement: Nukes telemetry and ensures isolation."""
         os.environ["CREWAI_SKIP_TELEMETRY"] = "true"
         os.environ["OTEL_SDK_DISABLED"] = "true"
-        # Security: Force any rogue OpenAI dependencies to route to your Laptop IP
-        # This prevents the 'Connection Error' when the library tries to phone home.
-        ollama_base = os.getenv("OLLAMA_URL", "http://172.22.96.1:11434")
-        os.environ["OPENAI_API_KEY"] = "NA"
-        os.environ["OPENAI_API_BASE"] = f"{ollama_base}/v1"
 
     @staticmethod
     def get_manager_brain():
@@ -39,17 +33,14 @@ class SwarmBrain:
         Tier 1 (Managers) & Tier 2 (Supervisors).
         Uses Groq (Llama-3.3-70b-versatile) for high-scale planning.
         """
-        api_key = os.getenv("GROQ_API_KEY")
-        model_name = "groq/llama-3.3-70b-versatile"
-        
-        if _USE_NATIVE:
-            return LLM(
-                model=model_name,
-                api_key=api_key,
-                temperature=0.3,
-                timeout=300
-            )
-        return model_name
+        return ChatOpenAI(
+            api_key=os.getenv("GROQ_API_KEY", "NO_KEY_PROVIDED"),
+            base_url="https://api.groq.com/openai/v1",
+            model="llama-3.3-70b-versatile",
+            temperature=0.3,
+            request_timeout=300,
+            max_retries=3
+        )
 
     @staticmethod
     def get_worker_brain():
@@ -58,17 +49,15 @@ class SwarmBrain:
         Uses Local Ollama (Llama-3.2-3b) for private action.
         Extended timeout (900s) ensures no choking on large file writes.
         """
-        model_name = "ollama/llama3.2:3b"
-        base_url = os.getenv("OLLAMA_URL", "http://172.22.96.1:11434")
-        
-        if _USE_NATIVE:
-            return LLM(
-                model=model_name,
-                base_url=base_url,
-                temperature=0.1, # Strictness for code accuracy
-                timeout=900
-            )
-        return model_name
+        ollama_base = os.getenv("OLLAMA_URL", "http://172.22.96.1:11434")
+        return ChatOpenAI(
+            api_key="NA",
+            base_url=f"{ollama_base}/v1",
+            model="llama3.2:3b",
+            temperature=0.1,
+            request_timeout=900,
+            max_retries=3
+        )
 
     @staticmethod
     def get_embedder_config():
