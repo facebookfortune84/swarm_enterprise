@@ -1,24 +1,23 @@
 # ==============================================================================
 # SOVEREIGN SDK: SWARM ENTERPRISE INFRASTRUCTURE MANIFEST
-# Version: 1.0.3-Alpha
+# Version: 1.0.5-Alpha
 # Architecture: Fractal Hierarchical
+# Description: Hardened Native Volumes and STRICT YAML spacing.
 # ==============================================================================
 
 services:
   # 1. THE PERIMETER: Cloudflare Tunnel
-  # Routes realms2riches.com and corp.realms2riches.com to our containers.
   tunnel:
     image: cloudflare/cloudflared:latest
     container_name: swarmenterprise-tunnel-1
     restart: always
     environment:
-      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN:-}
     command: tunnel --no-autoupdate run --protocol http2
     networks:
       - swarm_network
 
   # 2. THE BRAIN: FastAPI Backend
-  # Core logic for 12 Managers, 30 Supervisors, and Linear Ticketing.
   backend:
     build:
       context: .
@@ -30,7 +29,6 @@ services:
       - "host.docker.internal:host-gateway"
     volumes:
       - .:/app
-      - ./memory_data:/app/memory_data
       - ./output:/app/output
     depends_on:
       db:
@@ -43,7 +41,6 @@ services:
       - swarm_network
 
   # 3. THE COMMAND CENTER: React Frontend
-  # Dashboard for initiating Fractal Sprints.
   frontend:
     build:
       context: ./frontend
@@ -54,29 +51,27 @@ services:
       - swarm_network
 
   # 4. THE NERVOUS SYSTEM: ChromaDB
-  # Vector storage for agent RAG memory.
   chromadb:
     image: chromadb/chroma
     container_name: swarmenterprise-chromadb-1
     volumes:
-      - ./memory_data:/chroma/chroma
+      - chroma_data:/chroma/chroma
     restart: always
     networks:
       - swarm_network
 
   # 5. THE DATA VAULT: PostgreSQL
-  # Relational storage for the Linear Ticketing Engine.
   db:
     image: postgres:15-alpine
     container_name: swarmenterprise-db-1
     restart: always
     environment:
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-SovereignSwarm2026!}
       - POSTGRES_DB=${POSTGRES_DB:-swarm_enterprise}
     volumes:
-      - ./pg_data:/var/lib/postgresql/data
-    healthcheck: 
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-swarm_enterprise}"]
       interval: 10s
       timeout: 5s
@@ -85,7 +80,6 @@ services:
       - swarm_network
 
   # 6. THE MESSAGE BUS: Redis
-  # Asynchronous task queuing for high-scale agent coordination.
   redis:
     image: redis:alpine
     container_name: swarmenterprise-redis-1
@@ -99,7 +93,6 @@ services:
       - swarm_network
 
   # 7. THE IMMUNE SYSTEM: SRE Monitor
-  # Auto-heals failed agents and containers (SOP-08).
   monitor:
     build:
       context: .
@@ -116,7 +109,6 @@ services:
       - "host.docker.internal:host-gateway"
 
   # 8. THE DELIVERY WINDOW: Output Viewer
-  # Built-in file server for customer downloads (Port 8080).
   output_viewer:
     image: halverneus/static-file-server:latest
     container_name: swarmenterprise-output-viewer-1
@@ -134,3 +126,8 @@ networks:
   swarm_network:
     name: swarm_network
     driver: bridge
+
+# SRE HARDENING: Docker Native Volumes bypass NTFS bridge locks
+volumes:
+  pg_data:
+  chroma_data:
